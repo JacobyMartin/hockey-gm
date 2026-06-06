@@ -1,0 +1,256 @@
+/* =========================
+   GLOBAL
+========================= */
+
+body {
+    margin: 0;
+    padding: 0;
+
+    background: #11161d;
+
+    color: #f1f5f9;
+
+    font-family: Arial, sans-serif;
+}
+
+/* =========================
+   TOPBAR
+========================= */
+
+.topbar {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px 40px;
+
+    background: #1a222c;
+
+    border-bottom: 2px solid #2d3a4a;
+}
+
+.topbar h1 {
+    margin: 0;
+
+    color: #dbeafe;
+
+    letter-spacing: 1px;
+}
+
+.record-box {
+    display: flex;
+    gap: 20px;
+
+    font-size: 18px;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.dashboard {
+
+    display: grid;
+
+    grid-template-columns: 2fr 1fr;
+
+    gap: 20px;
+
+    padding: 20px;
+}
+
+/* =========================
+   PANELS
+========================= */
+
+.panel {
+
+    background: #1b2430;
+
+    border: 1px solid #2d3a4a;
+
+    border-radius: 10px;
+
+    padding: 20px;
+}
+
+.panel-header {
+    margin-bottom: 20px;
+}
+
+.panel-header h2 {
+    margin: 0;
+
+    color: #93c5fd;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.lineup-table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+}
+
+.lineup-table th {
+
+    background: #273447;
+
+    padding: 12px;
+
+    text-align: left;
+
+    color: #bfdbfe;
+}
+
+.lineup-table td {
+
+    padding: 10px;
+
+    border-bottom: 1px solid #2d3a4a;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button {
+
+    width: 100%;
+
+    padding: 14px;
+
+    margin-bottom: 15px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #3b82f6;
+
+    color: white;
+
+    font-size: 16px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+button:hover {
+
+    background: #60a5fa;
+}
+
+/* =========================
+   GAME RESULT
+========================= */
+
+.game-result {
+
+    margin-top: 30px;
+
+    padding: 15px;
+
+    background: #111827;
+
+    border-radius: 8px;
+}
+
+.game-result h3 {
+
+    margin-top: 0;
+
+    color: #93c5fd;
+}
+
+
+/* =========================
+   APP LAYOUT
+========================= */
+
+.app-layout {
+
+    display: grid;
+
+    grid-template-columns: 240px 1fr;
+
+    min-height: 100vh;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+
+    background: #0f1720;
+
+    border-right: 1px solid #2d3a4a;
+
+    padding: 20px;
+}
+
+.logo {
+
+    color: #dbeafe;
+
+    margin-bottom: 40px;
+
+    text-align: center;
+}
+
+.nav-menu {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.nav-btn {
+
+    background: transparent;
+
+    border: none;
+
+    color: #cbd5e1;
+
+    text-align: left;
+
+    padding: 14px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.nav-btn:hover {
+
+    background: #1e293b;
+}
+
+.nav-btn.active {
+
+    background: #3b82f6;
+
+    color: white;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+
+.main-content {
+
+    display: flex;
+
+    flex-direction: column;
+}

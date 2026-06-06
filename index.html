@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Hockey GM Simulator</title>
+
+    <link rel="stylesheet"
+          href="./css/style.css">
+</head>
+
+<body>
+
+    <div class="app-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <h1 class="logo">
+                 GM
+            </h1>
+
+            <nav class="nav-menu">
+
+                <button class="nav-btn active">
+                    Dashboard
+                </button>
+
+                <button class="nav-btn">
+                    Roster
+                </button>
+
+                <button class="nav-btn">
+                    League
+                </button>
+
+                <button class="nav-btn">
+                    Schedule
+                </button>
+
+                <button class="nav-btn">
+                    Playoffs
+                </button>
+
+                <button class="nav-btn">
+                    Free Agency
+                </button>
+
+            </nav>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <header class="topbar">
+
+                <h1>
+                    Belleville Blades
+                </h1>
+
+                <div class="record-box">
+                    <span>W: <span id="wins">0</span></span>
+                    <span>L: <span id="losses">0</span></span>
+                </div>
+
+            </header>
+
+            <section class="dashboard">
+
+                <!-- LINEUP -->
+                <div class="panel">
+
+                    <div class="panel-header">
+                        <h2>Starting Lineup</h2>
+                    </div>
+
+                    <table class="lineup-table">
+
+                        <thead>
+                            <tr>
+                                <th>POS</th>
+                                <th>PLAYER</th>
+                                <th>OVR</th>
+                                <th>G</th>
+                                <th>A</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="lineup"></tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="panel">
+
+                    <div class="panel-header">
+                        <h2>Game Controls</h2>
+                    </div>
+
+                    <button onclick="simNextGame()">
+                        Sim Next Game
+                    </button>
+
+                    <button onclick="simSeason()">
+                        Sim Regular Season
+                    </button>
+
+                    <div class="game-result">
+
+                        <h3>Latest Result</h3>
+
+                        <p id="gameResult">
+                            No games played.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script type="module"
+            src="./js/main.js"></script>
+
+</body>
+
+</html>
