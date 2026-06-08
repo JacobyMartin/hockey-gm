@@ -10,15 +10,7 @@ export function playGame(userTeam, opponent) {
 
     const result =
         simulateMatch(userTeam, opponent);
-
-    if (
-        result.winner === userTeam.name
-    ) {
-        userTeam.wins++;
-    } else {
-        userTeam.losses++;
-    }
-
+    
     return result;
 }
 
