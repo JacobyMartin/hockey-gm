@@ -3,134 +3,149 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Hockey GM Simulator</title>
 
-    <link rel="stylesheet"
-          href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 
 <body>
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <div class="app-layout">
+        <button class="nav-btn active" onclick="showScreen('dashboard', this)">
+            Dashboard
+        </button>
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
+        <button class="nav-btn" onclick="showScreen('roster', this)">
+            Roster
+        </button>
 
-            <h1 class="logo">
-                 GM
-            </h1>
+        <button class="nav-btn" onclick="showScreen('league', this)">
+            League
+        </button>
+        
+        <button class="nav-btn" onclick="showScreen('settings', this)">
+            Settings
+        </button>
 
-            <nav class="nav-menu">
+    </aside>
 
-                <button class="nav-btn active">
-                    Dashboard
-                </button>
+    <!-- HEADER -->
+    <header class="topbar">
+        <h1 id="teamName">Hockey GM</h1>
 
-                <button class="nav-btn">
-                    Roster
-                </button>
+        <div id="currentDate">Oct 1, 1960</div>
 
-                <button class="nav-btn">
-                    League
-                </button>
+        <div class="record-box">
+            <span>W <span id="wins">0</span></span>
+            <span>L <span id="losses">0</span></span>
+        </div>
+    </header>
 
-                <button class="nav-btn">
-                    Schedule
-                </button>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
 
-                <button class="nav-btn">
-                    Playoffs
-                </button>
+        <!-- START SCREEN -->
+        <section class="panel" id="startScreen">
 
-                <button class="nav-btn">
-                    Free Agency
-                </button>
+            <h2>Select Team</h2>
 
-            </nav>
+            <select id="teamSelect"></select>
 
-        </aside>
+            <button onclick="startGame()">
+                Start Game
+            </button>
 
-        <!-- MAIN CONTENT -->
-        <main class="main-content">
+        </section>
 
-            <header class="topbar">
 
-                <h1>
-                    Belleville Blades
-                </h1>
+        <!-- DASHBOARD -->
+        <section id="dashboardScreen" class="screen">
 
-                <div class="record-box">
-                    <span>W: <span id="wins">0</span></span>
-                    <span>L: <span id="losses">0</span></span>
-                </div>
+            <!-- LINEUP -->
+            <section class="panel">
+                <h2>Starting Lineup</h2>
+                <div id="lineup" class="lineup-cards"></div>
+            </section>
 
-            </header>
+            <!-- CONTROLS -->
+            <section class="panel">
 
-            <section class="dashboard">
+                <h2>Game Controls</h2>
 
-                <!-- LINEUP -->
-                <div class="panel">
+                <button onclick="simDay()">Sim Day</button>
+                <button onclick="simWeek()">Sim Week</button>
 
-                    <div class="panel-header">
-                        <h2>Starting Lineup</h2>
-                    </div>
-
-                    <table class="lineup-table">
-
-                        <thead>
-                            <tr>
-                                <th>POS</th>
-                                <th>PLAYER</th>
-                                <th>OVR</th>
-                                <th>G</th>
-                                <th>A</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="lineup"></tbody>
-
-                    </table>
-
-                </div>
-
-                <!-- ACTIONS -->
-                <div class="panel">
-
-                    <div class="panel-header">
-                        <h2>Game Controls</h2>
-                    </div>
-
-                    <button onclick="simNextGame()">
-                        Sim Next Game
-                    </button>
-
-                    <button onclick="simSeason()">
-                        Sim Regular Season
-                    </button>
-
-                    <div class="game-result">
-
-                        <h3>Latest Result</h3>
-
-                        <p id="gameResult">
-                            No games played.
-                        </p>
-
-                    </div>
-
+                <div class="game-result">
+                    <strong>Latest:</strong>
+                    <span id="gameResult">No games yet</span>
                 </div>
 
             </section>
 
-        </main>
+        </section>
 
-    </div>
 
-    <script type="module"
-            src="./js/main.js"></script>
+        <!-- ROSTER SCREEN -->
+        <section id="rosterScreen" class="screen hidden">
+
+            <section class="panel">
+                <h2>Roster</h2>
+                <div id="rosterList"></div>
+            </section>
+
+        </section>
+
+        <!-- LEAGUE SCREEN -->
+        <section id="leagueScreen" class="screen hidden">
+
+            <section class="panel">
+
+                <h2>Standings</h2>
+
+                <table class="standings-table">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>PCT</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="standings"></tbody>
+                </table>
+
+            </section>
+
+        </section>
+
+
+        
+        <!-- SETTINGS SCREEN -->
+        <section id="settingsScreen" class="screen hidden">
+
+            <section class="panel">
+
+                <h2>Settings</h2>
+
+                <button onclick="resetGame()">
+                    New Game
+                </button>
+
+            </section>
+
+        </section>
+
+
+
+    </main>
+    <!-- SCRIPTS -->
+    <script type="module" src="./js/main.js"></script>
+    <script src="./js/ui/sidebar.js"></script>
 
 </body>
 

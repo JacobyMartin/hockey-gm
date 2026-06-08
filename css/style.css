@@ -1,256 +1,355 @@
-/* =========================
-   GLOBAL
-========================= */
-
-body {
-    margin: 0;
-    padding: 0;
-
-    background: #11161d;
-
-    color: #f1f5f9;
-
-    font-family: Arial, sans-serif;
+/* ===== COLORS ===== */
+:root {
+    --bg: #f4f7fb;
+    --panel: #ffffff;
+    --primary: #4da3ff;
+    --secondary: #2c3e50;
+    --text: #1f2a33;
+    --muted: #7d8b99;
+    --border: #d9e2ec;
 }
 
-/* =========================
-   TOPBAR
-========================= */
 
+/* ===== GLOBAL ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+
+/* ===== HEADER ===== */
 .topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
 
     display: flex;
     justify-content: space-between;
     align-items: center;
 
-    padding: 20px 40px;
-
-    background: #1a222c;
-
-    border-bottom: 2px solid #2d3a4a;
+    position: sticky;
+    top: 0;
 }
 
 .topbar h1 {
-    margin: 0;
-
-    color: #dbeafe;
-
-    letter-spacing: 1px;
+    font-size: 18px;
+    font-weight: 600;
 }
 
+
+
+/* ===== RECORD ===== */
 .record-box {
     display: flex;
-    gap: 20px;
-
-    font-size: 18px;
+    gap: 8px;
 }
 
-/* =========================
-   DASHBOARD
-========================= */
-
-.dashboard {
-
-    display: grid;
-
-    grid-template-columns: 2fr 1fr;
-
-    gap: 20px;
-
-    padding: 20px;
+.record-box span {
+    background: var(--primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 13px;
 }
 
-/* =========================
-   PANELS
-========================= */
 
-.panel {
 
-    background: #1b2430;
 
-    border: 1px solid #2d3a4a;
 
-    border-radius: 10px;
-
-    padding: 20px;
-}
-
-.panel-header {
-    margin-bottom: 20px;
-}
-
-.panel-header h2 {
-    margin: 0;
-
-    color: #93c5fd;
-}
-
-/* =========================
-   TABLE
-========================= */
-
-.lineup-table {
-
-    width: 100%;
-
-    border-collapse: collapse;
-}
-
-.lineup-table th {
-
-    background: #273447;
-
+/* ===== MAIN ===== */
+.main-content {
     padding: 12px;
-
-    text-align: left;
-
-    color: #bfdbfe;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.lineup-table td {
 
+/* ===== PANELS ===== */
+.panel {
+    background: var(--panel);
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.panel h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--secondary);
+}
+
+
+
+
+
+
+
+
+
+/* ===== LINEUP CARDS ===== */
+.lineup-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* each player card */
+.player-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+
+    border-radius: 8px;
     padding: 10px;
 
-    border-bottom: 1px solid #2d3a4a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* =========================
-   BUTTONS
-========================= */
+/* left side */
+.player-info {
+    display: flex;
+    flex-direction: column;
+}
 
-button {
+.player-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--secondary);
+}
 
-    width: 100%;
+.player-pos {
+    font-size: 12px;
+    color: var(--muted);
+}
 
-    padding: 14px;
+/* right side */
+.player-stats {
+    text-align: right;
+}
 
-    margin-bottom: 15px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background: #3b82f6;
-
-    color: white;
-
+.player-ovr {
     font-size: 16px;
-
-    cursor: pointer;
-
-    transition: 0.2s;
+    font-weight: bold;
+    color: var(--primary);
 }
 
-button:hover {
-
-    background: #60a5fa;
-}
-
-/* =========================
-   GAME RESULT
-========================= */
-
-.game-result {
-
-    margin-top: 30px;
-
-    padding: 15px;
-
-    background: #111827;
-
-    border-radius: 8px;
-}
-
-.game-result h3 {
-
-    margin-top: 0;
-
-    color: #93c5fd;
+/* optional stat row */
+.player-sub {
+    font-size: 11px;
+    color: var(--muted);
 }
 
 
-/* =========================
-   APP LAYOUT
-========================= */
 
-.app-layout {
 
-    display: grid;
 
-    grid-template-columns: 240px 1fr;
 
-    min-height: 100vh;
-}
 
-/* =========================
-   SIDEBAR
-========================= */
 
+/* ===== SIDEBAR (FIXED LEFT) ===== */
 .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 180px;
+    height: 100vh;
 
-    background: #0f1720;
-
-    border-right: 1px solid #2d3a4a;
-
-    padding: 20px;
-}
-
-.logo {
-
-    color: #dbeafe;
-
-    margin-bottom: 40px;
-
-    text-align: center;
-}
-
-.nav-menu {
+    background: var(--secondary);
+    color: white;
+    padding: 16px;
 
     display: flex;
-
     flex-direction: column;
+}
 
-    gap: 10px;
+
+
+
+
+/* ===== PUSH CONTENT RIGHT ===== */
+.topbar {
+    margin-left: 180px;
+}
+
+.main-content {
+    margin-left: 180px;
+    padding: 12px;
+}
+
+
+
+
+
+
+
+
+/* ===== BUTTONS ===== */
+button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: var(--primary);
+    color: white;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+button:active {
+    opacity: 0.85;
 }
 
 .nav-btn {
-
-    background: transparent;
-
+    background: none;
     border: none;
-
-    color: #cbd5e1;
-
+    color: white;
+    padding: 10px 0;
     text-align: left;
-
-    padding: 14px;
-
-    border-radius: 8px;
-
     cursor: pointer;
-
-    transition: 0.2s;
-}
-
-.nav-btn:hover {
-
-    background: #1e293b;
 }
 
 .nav-btn.active {
-
-    background: #3b82f6;
-
-    color: white;
+    color: var(--primary);
 }
 
-/* =========================
-   MAIN CONTENT
-========================= */
+.screen {
+    display: block;
+}
 
-.main-content {
+.hidden {
+    display: none;
+}
 
+
+
+
+
+
+/* ===== ROSTER SECTIONS ===== */
+
+.roster-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+.roster-section h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--secondary);
+
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+}
+
+
+/* ===== PLAYER ROW ===== */
+
+.roster-player {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-    flex-direction: column;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+
+    border-radius: 8px;
+    background: rgba(77, 163, 255, 0.08);
+}
+
+.roster-player:last-child {
+    margin-bottom: 0;
+}
+
+
+/* LEFT SIDE (POS + NAME) */
+.roster-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.roster-pos {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary);
+
+    width: 28px;
+}
+
+.roster-name {
+    font-size: 14px;
+    color: var(--text);
+}
+
+
+/* RIGHT SIDE (OVR) */
+.roster-right {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--secondary);
+}
+
+
+
+
+
+
+
+
+/* ===== STANDINGS SECTION ===== */
+.standings-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.standings-table th {
+    text-align: left;
+    font-size: 12px;
+    color: var(--muted);
+    padding-bottom: 6px;
+}
+
+.standings-table td {
+    padding: 6px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+
+
+
+
+
+
+/* ===== GAME RESULT ===== */
+.game-result {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--secondary);
+}
+
+
+/* ===== DESKTOP (optional upgrade) ===== */
+@media (min-width: 768px) {
+    .main-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 }

@@ -19,7 +19,7 @@ export const rosters1960 = {
     ],
 
     "Toronto": [
-        { id: 12, name: "Mason Clarke", age: 29, pos: "C", shooting: 89, passing: 88, offenseIQ: 88, defense: 81, defenseIQ: 83, careerStats: { games: 0, goals: 0, assists: 0, points: 0 } },
+        { id: 12, name: "Mason Clarke", age: 29, pos: "C", shooting: 93, passing: 88, offenseIQ: 94, defense: 81, defenseIQ: 83, careerStats: { games: 0, goals: 0, assists: 0, points: 0 } },
         { id: 13, name: "Ryan Mercer", age: 28, pos: "C", shooting: 85, passing: 87, offenseIQ: 87, defense: 82, defenseIQ: 84, careerStats: { games: 0, goals: 0, assists: 0, points: 0 } },
 
         { id: 14, name: "Tyler Brooks", age: 22, pos: "LW", shooting: 91, passing: 80, offenseIQ: 88, defense: 76, defenseIQ: 78, careerStats: { games: 0, goals: 0, assists: 0, points: 0 } },
