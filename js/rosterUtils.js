@@ -46,22 +46,16 @@ export function buildBestLineup(players) {
 
 export function buildRosterLines(players) {
 
-    if (!Array.isArray(players)) {
-        return { lines: [], goalies: [], scratches: [] };
-    }
-
-    let forwards = players.filter(p => ["C", "LW", "RW"].includes(p.pos));
+    let forwards = players.filter(p => p.pos === "C" || p.pos === "LW" || p.pos === "RW");
     let defense = players.filter(p => p.pos === "D");
     let goalies = players.filter(p => p.pos === "G");
 
-    // enforce limits
     forwards = forwards.slice(0, 9);
     defense = defense.slice(0, 5);
     goalies = goalies.slice(0, 2);
 
     const lines = [];
 
-    // Line 1 (forwards + defense ONLY)
     lines.push({
         name: "Line 1",
         players: [
@@ -70,7 +64,6 @@ export function buildRosterLines(players) {
         ]
     });
 
-    // Line 2
     if (forwards.length >= 6 || defense.length >= 4) {
         lines.push({
             name: "Line 2",
@@ -81,21 +74,13 @@ export function buildRosterLines(players) {
         });
     }
 
-    // track used players
-    const usedIds = new Set(
-        lines.flatMap(l => l.players.map(p => p.id))
-    );
+    const used = new Set(lines.flatMap(l => l.players.map(p => p.id)));
 
-    // goalies NOT included in usedIds (they get their own section)
-
-    const scratches = players.filter(p =>
-        !usedIds.has(p.id) && p.pos !== "G"
-    );
+    const scratches = players.filter(p => !used.has(p.id) && p.pos !== "G");
 
     return {
         lines,
-        goalies,
+        goalies, 
         scratches
     };
 }
-``

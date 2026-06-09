@@ -37,6 +37,7 @@ import {
 } from "./ui/dashboard.js";
 
 import { rosters1960 } from "./data/rosters/1960.js"; 
+import { simulateMatch } from "./core/simulation.js";
 
 
 // ===== SAVE / LOAD =====
@@ -99,7 +100,6 @@ function init() {
     window.closePlayerModal = closePlayerModal;
 
         if (loadGame()) {
-        ensureLeagueStats()    
         console.log("Loaded saved game");
 
         // expose globals
@@ -118,6 +118,11 @@ function init() {
         renderStandings(getStandings(), userTeam.name);
 
         updateRecord(userTeam);
+
+        //ensure player stats on load game 
+        initializeTeamStats(userTeam);
+        opponents.forEach(team => initializeTeamStats(team));
+
         
 
         // hide start screen
@@ -243,7 +248,7 @@ window.startGame = function () {
         wins: 0,
         losses: 0
     };
-    
+    initializeTeamStats(userTeam);
 
     opponents = Object.keys(rosters1960)
         .filter(name => name !== selected)
@@ -264,7 +269,7 @@ window.startGame = function () {
             };
         })
         .filter(Boolean);
-        
+        opponents.forEach(team => initializeTeamStats(team));
         
 
     setDate(new Date(1960, 9, 1));
@@ -286,12 +291,7 @@ window.startGame = function () {
 
     window.getStandings = getStandings;
     window.userTeam = userTeam;
-    ensureTeamStats(userTeam);
-
     window.opponents = opponents;
-    opponents.forEach(team => ensureTeamStats(team));
-
-
     window.renderCalendar(); 
     
     showScreen("dashboard");
@@ -333,9 +333,14 @@ window.simDay = function () {
 
         if (!homeTeam || !awayTeam) return;
 
-        const result = playGame(homeTeam, awayTeam);
+        const result = simulateMatch(homeTeam, awayTeam);
+        applyPlayerStats(result.events);
+            
+        addGamesPlayed(homeTeam);
+        addGamesPlayed(awayTeam);
 
         applyGameResult(result, homeTeam, awayTeam);
+
 
         // track user game
         if (
@@ -357,7 +362,6 @@ window.simDay = function () {
     updateDateUI();
     updateTodayMatchup();
     renderStandings(getStandings(), userTeam.name);
-
     saveGame();
 };
 
@@ -380,7 +384,11 @@ window.simWeek = function () {
 
             if (!homeTeam || !awayTeam) return;
 
-            const result = playGame(homeTeam, awayTeam);
+            const result = simulateMatch(homeTeam, awayTeam);
+            applyPlayerStats(result.events);
+            
+            addGamesPlayed(homeTeam);
+            addGamesPlayed(awayTeam);
 
             applyGameResult(result, homeTeam, awayTeam);
 
@@ -493,42 +501,6 @@ function getTeamByName(name) {
     return opponents.find(t => t.name === name);
 }
 
-function ensurePlayerStats(players) {
-    if (!Array.isArray(players)) return;
-
-    players.forEach(player => {
-        if (!player.careerStats) {
-            player.careerStats = {
-                games: 0,
-                goals: 0,
-                assists: 0,
-                points: 0
-            };
-        }
-
-        if (!player.currentSeasonStats) {
-            player.currentSeasonStats = {
-                games: 0,
-                goals: 0,
-                assists: 0,
-                points: 0
-            };
-        }
-    });
-}
-
-function ensureTeamStats(team) {
-    if (!team || !team.roster) return;
-    ensurePlayerStats(team.roster);
-}
-
-function ensureLeagueStats() {
-    if (userTeam) ensureTeamStats(userTeam);
-    if (Array.isArray(opponents)) {
-        opponents.forEach(team => ensureTeamStats(team));
-    }
-}
-
 
 function ensureStats(player) {
     if (!player.careerStats) {
@@ -540,20 +512,34 @@ function ensureStats(player) {
     }
 }
 
-function addStat(player, type, amount = 1) {
-    ensureStats(player);
+function ensurePlayerHasStats(player) {
+    if (!player.careerStats) {
+        player.careerStats = {
+            games: 0,
+            goals: 0,
+            assists: 0,
+            points: 0
+        };
+    }
 
-    // career
-    player.careerStats[type] += amount;
-
-    // season
-    player.currentSeasonStats[type] += amount;
-
-    if (type === "goals" || type === "assists") {
-        player.careerStats.points += amount;
-        player.currentSeasonStats.points += amount;
+    if (!player.currentSeasonStats) {
+        player.currentSeasonStats = {
+            games: 0,
+            goals: 0,
+            assists: 0,
+            points: 0
+        };
     }
 }
+
+function initializeTeamStats(team) {
+    if (!team?.roster) return;
+
+    team.roster.forEach(player => {
+        ensurePlayerHasStats(player);
+    });
+}
+
 
 
 function applyPlayerStats(events) {
@@ -586,14 +572,20 @@ function applyPlayerStats(events) {
 
 
 function addGamesPlayed(team) {
-    if (!team?.lineup) return;
+    if (!team?.roster) return;
 
-    team.lineup.forEach(player => {
+    const { lines } = buildRosterLines(team.roster);
+
+    const activePlayers =lines.flatMap(line => line.players);
+
+    activePlayers.forEach(player => {
         ensureStats(player);
         player.careerStats.games++;
         player.currentSeasonStats.games++;
     });
 }
+
+
 
 
 

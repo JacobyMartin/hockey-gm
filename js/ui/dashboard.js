@@ -192,7 +192,7 @@ export function renderLineup(lineup) {
 
     lineup.forEach(player => {
         const ovr = calculateOVR(player);
-        const season = getSeasonStats(player);
+        const season = getSeasonStats(player); 
 
         const card = document.createElement("div");
         card.className = "player-card";

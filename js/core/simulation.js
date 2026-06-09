@@ -1,9 +1,8 @@
 // simulation.js
 // simulate matches based on team ratings
 
-import {
-    getTeamOverall
-} from "./stats.js";
+import {getTeamOverall} from "./stats.js";
+import { buildRosterLines } from "../rosterUtils.js";
 
 export function simulateMatch(homeTeam, awayTeam) {
 
@@ -58,19 +57,23 @@ function createGoalEvent(homeTeam, awayTeam, side) {
 
     const team = side === "home" ? homeTeam : awayTeam;
 
-    const players = team.lineup || [];
+    const { lines } = buildRosterLines(team.roster || []);
 
-    if (players.length === 0) {
+    // all active non-goalie, non-scratch players
+    const skaters = lines.flatMap(line => line.players);
+
+    if (skaters.length === 0) {
         return { team: team.name, scorer: null, assist: null };
     }
 
     // pick scorer
-    const scorer = players[Math.floor(Math.random() * players.length)];
+    const scorer = skaters[Math.floor(Math.random() * skaters.length)];
 
-    // pick assist (not the same player)
-    let assist = players[Math.floor(Math.random() * players.length)];
-
-    if (assist === scorer) assist = null;
+    // pick assist from active skaters, not same player
+    let assist = skaters[Math.floor(Math.random() * skaters.length)];
+    if (assist === scorer) {
+        assist = null;
+    }
 
     return {
         team: team.name,
