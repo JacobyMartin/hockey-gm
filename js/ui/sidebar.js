@@ -31,4 +31,15 @@ window.showScreen = function (screenName, btn) {
 
     }
 
+    //CALENDAR SCREEN
+    if (screenName === "calendar" && window.userTeam) {
+
+        // start viewing from current date
+        window.calendarViewDate = new Date(getCurrentDate());
+
+        window.renderCalendarView();
+    }
+
+
+
 };

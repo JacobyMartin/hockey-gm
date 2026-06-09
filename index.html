@@ -26,7 +26,11 @@
         <button class="nav-btn" onclick="showScreen('league', this)">
             League
         </button>
-        
+
+        <button class="nav-btn" onclick="showScreen('calendar', this)">
+            Calendar
+        </button>
+
         <button class="nav-btn" onclick="showScreen('settings', this)">
             Settings
         </button>
@@ -70,6 +74,12 @@
                 <h2>Starting Lineup</h2>
                 <div id="lineup" class="lineup-cards"></div>
             </section>
+
+            <!-- TODAY DISPLAY-->   
+            <div class="panel">
+                <h2>Today</h2>
+                <p id="todayMatchup">No game scheduled</p>
+            </div>
 
             <!-- CONTROLS -->
             <section class="panel">
@@ -123,6 +133,27 @@
 
         </section>
 
+        <!-- CALENDAR SCREEN -->
+        <section id="calendarScreen" class="screen hidden">
+
+            <section class="panel">
+
+                <h2>Calendar</h2>
+
+                
+                <div class="calendar-controls">
+                    <button onclick="prevMonth()">◀</button>
+                    <span id="calendarMonth"></span>
+                    <button onclick="nextMonth()">▶</button>
+                </div>
+
+                <div id="calendarList"></div>
+
+            </section>
+
+        </section>
+
+
 
         
         <!-- SETTINGS SCREEN -->
@@ -143,6 +174,49 @@
 
 
     </main>
+
+
+
+
+
+
+    
+
+    <!-- PLAYER DETAIL MODAL -->
+<div id="playerModal" class="player-modal hidden">
+    <div class="player-modal-content">
+
+        <div class="player-modal-header">
+            <h2 id="playerModalName">Player Name</h2>
+            <button class="player-close-btn" onclick="closePlayerModal()">✕</button>
+        </div>
+
+        <div class="player-modal-body">
+
+            <section class="player-section">
+                <h3>Profile</h3>
+                <div id="playerProfile"></div>
+            </section>
+
+            <section class="player-section">
+                <h3>Attributes</h3>
+                <div id="playerAttributes"></div>
+            </section>
+
+            <section class="player-section">
+                <h3>Current Season</h3>
+                <div id="playerSeasonStats"></div>
+            </section>
+
+            <section class="player-section">
+                <h3>Career Stats</h3>
+                <div id="playerCareerStats"></div>
+            </section>
+
+        </div>
+    </div>
+</div>
+
     <!-- SCRIPTS -->
     <script type="module" src="./js/main.js"></script>
     <script src="./js/ui/sidebar.js"></script>

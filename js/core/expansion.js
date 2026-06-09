@@ -4,52 +4,71 @@ export const expansionEvents = [
 
     {
         year: 1967,
-
         teams: [
-            "Philadelphia Flyers",
-            "Pittsburgh Penguins",
-            "St. Louis Blues"
+            "Pittsburgh",
+            "Los Angeles",
+            "Edmonton", 
+            "Minnesota", 
         ]
     },
 
     {
-        year: 1970,
-
+        year: 1974,
         teams: [
-            "Buffalo Sabres",
-            "Vancouver Canucks"
+            "Calgary",
+            "Vancouver", 
+            "Buffalo", 
+            "New Jersey"
+
         ]
     }
 ];
 
 
+export function checkExpansion(userTeam, opponents, currentDate) {
 
+    if (!currentDate) return;
 
-export function checkExpansion(state) {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const day = currentDate.getDate();
 
-    if (!state.settings.hardcodedExpansion) {
-        return;
-    }
+    // only run once: June 1
+    if (month !== 5 || day !== 1) return;
 
     expansionEvents.forEach(event => {
 
-        if (
-            event.year ===
-            state.currentDate.year
-        ) {
+        if (event.year === year && !event.triggered) {
 
-            event.teams.forEach(team => {
+            let expanded = false;
 
-                state.league.teams.push({
-                    name: team,
+            event.teams.forEach(teamName => {
+
+                const alreadyExists =
+                    userTeam.name === teamName ||
+                    opponents.some(t => t.name === teamName);
+
+                if (alreadyExists) return;
+
+                opponents.push({
+                    name: teamName,
+                    roster: [],
+                    lineup: [],
                     wins: 0,
                     losses: 0
                 });
 
-                console.log(
-                    `${team} joined the league!`
-                );
+                expanded = true;
+
+                console.log(`${teamName} joined the league!`);
             });
+
+            if (expanded) {
+                const teamNames = [userTeam.name, ...opponents.map(t => t.name)];
+                generateSchedule(teamNames, currentDate);
+            }
+
+            event.triggered = true;
         }
     });
 }

@@ -2,24 +2,38 @@
 console.log("main.js loaded");
 
 
-import { playGame, simulateSeason } from "./core/engine.js";
+import { playGame} from "./core/engine.js";
 import { buildBestLineup } from "./rosterUtils.js";
-import { setDate } from "./core/calendar.js";
+import { checkExpansion } from "./core/expansion.js";
 
 import {
     getCurrentDate,
     advanceDay,
     advanceDays,
+    setDate,
     formatDate
 } from "./core/calendar.js";
+
+
+import {
+    generateSchedule,
+    getTeamGameForDate,
+    getGamesForDate,
+    getOpponentForDate,
+    loadSchedule,
+    serializeSchedule
+} from "./core/schedule.js";
+
 
 
 import {
     renderLineup,
     renderRoster,
     renderStandings,
+    renderCalendar,
     updateRecord,
-    updateGameResult
+    updateGameResult,
+    closePlayerModal
 } from "./ui/dashboard.js";
 
 import { rosters1960 } from "./data/rosters/1960.js"; 
@@ -31,7 +45,8 @@ function saveGame() {
     localStorage.setItem("hockeyGM_save", JSON.stringify({
         userTeam,
         opponents, 
-        date: getCurrentDate()
+        date: getCurrentDate(),
+        schedule: serializeSchedule()
     }));
 }
 
@@ -49,6 +64,10 @@ function loadGame() {
         setDate(new Date(data.date));
     }
 
+    if (data.schedule) {
+        loadSchedule(data.schedule);
+    }
+
     if (!userTeam || !opponents) return false;
 
     return true;
@@ -62,46 +81,60 @@ function loadGame() {
 // ===============================
 
 let userTeam = null;
-let opponents = [];
-let gameIndex = 0;
-
+let opponents = []; 
 
 // ===============================
 // INIT
 // ===============================
 
 function init() {
-
     window.renderRoster = renderRoster;
     window.renderStandings = renderStandings;
+    window.renderCalendar = renderCalendar;
     window.updateRecord = updateRecord;
-    if (loadGame()) {
+    window.getTeamGameForDate = getTeamGameForDate;
+    window.getCurrentDate = getCurrentDate; 
+    window.calendarViewDate = new Date();
+    window.renderCalendarViewDate = renderCalendarView;
+    window.closePlayerModal = closePlayerModal;
 
+        if (loadGame()) {
+        ensureLeagueStats()    
         console.log("Loaded saved game");
 
-        // make data global
+        // expose globals
         window.userTeam = userTeam;
         window.opponents = opponents;
 
-        // update header
+        // restore header
         document.getElementById("teamName").textContent = userTeam.name;
-        document.getElementById("currentDate").textContent = formatDate(getCurrentDate());
-        // render
+
+        // restore date UI
+        updateDateUI();
+
+        // restore main UI
         renderLineup(userTeam.lineup);
         renderRoster(userTeam.roster);
         renderStandings(getStandings(), userTeam.name);
-        updateRecord(userTeam);
-        updateDateUI();
 
+        updateRecord(userTeam);
+        
+
+        // hide start screen
         document.getElementById("startScreen").style.display = "none";
 
+        // initialize calendar state (IMPORTANT)
+        window.calendarViewDate = new Date(getCurrentDate());
+        updateTodayMatchup();
+
+        // default screen AFTER load
         showScreen("dashboard");
 
-    }
-    
-    if (!userTeam) {
-        populateTeamSelector();
-    }
+        return; // VERY IMPORTANT (prevents selector from showing)
+        }
+        else {
+            populateTeamSelector();
+        }
 }
 
 
@@ -210,6 +243,7 @@ window.startGame = function () {
         wins: 0,
         losses: 0
     };
+    
 
     opponents = Object.keys(rosters1960)
         .filter(name => name !== selected)
@@ -230,23 +264,44 @@ window.startGame = function () {
             };
         })
         .filter(Boolean);
+        
+        
+
+    setDate(new Date(1960, 9, 1));
+
+    // generate schedule
+    const teamNames = [userTeam.name, ...opponents.map(t => t.name)];
+    generateSchedule(teamNames, getCurrentDate());
 
     document.getElementById("teamName").textContent = userTeam.name;
 
     renderLineup(userTeam.lineup);
     renderRoster(userTeam.roster);
-    updateRecord(userTeam.wins, userTeam.losses);
-    document.getElementById("startScreen").style.display = "none";
+    renderStandings(getStandings(), userTeam.name);
+    updateRecord(userTeam);
+    updateDateUI();
+    updateTodayMatchup();
 
+    document.getElementById("startScreen").style.display = "none";
 
     window.getStandings = getStandings;
     window.userTeam = userTeam;
+    ensureTeamStats(userTeam);
+
     window.opponents = opponents;
+    opponents.forEach(team => ensureTeamStats(team));
 
 
+    window.renderCalendar(); 
+    
     showScreen("dashboard");
+    
+    window.calendarViewDate = new Date(getCurrentDate());
+    renderCalendarView();
+
     saveGame();
 };
+
 
 
 // ===============================
@@ -259,20 +314,49 @@ function updateDateUI() {
         formatDate(getCurrentDate());
 }
 
+
+
 window.simDay = function () {
 
     if (!userTeam) return;
 
+    const currentDate = getCurrentDate();
+
+    const gamesToday = getGamesForDate(currentDate);
+
+    let userGameResult = null;
+
+    gamesToday.forEach(game => {
+
+        const homeTeam = getTeamByName(game.home);
+        const awayTeam = getTeamByName(game.away);
+
+        if (!homeTeam || !awayTeam) return;
+
+        const result = playGame(homeTeam, awayTeam);
+
+        applyGameResult(result, homeTeam, awayTeam);
+
+        // track user game
+        if (
+            game.home === userTeam.name ||
+            game.away === userTeam.name
+        ) {
+            userGameResult = result;
+        }
+    });
+
+    // update UI
+    if (userGameResult) {
+        updateGameResult(userGameResult);
+    } else {
+        document.getElementById("gameResult").textContent = "No game today";
+    }
+
     advanceDay();
-
-    // play one game
-    const opponent = getNextOpponent();
-    const result = playGame(userTeam, opponent);
-
-    applyGameResult(result, opponent);
-    updateGameResult(result);
-
     updateDateUI();
+    updateTodayMatchup();
+    renderStandings(getStandings(), userTeam.name);
 
     saveGame();
 };
@@ -282,17 +366,43 @@ window.simWeek = function () {
 
     if (!userTeam) return;
 
+    let lastUserResult = null;
+
     for (let i = 0; i < 7; i++) {
 
+        const currentDate = getCurrentDate();
+        const gamesToday = getGamesForDate(currentDate);
+
+        gamesToday.forEach(game => {
+
+            const homeTeam = getTeamByName(game.home);
+            const awayTeam = getTeamByName(game.away);
+
+            if (!homeTeam || !awayTeam) return;
+
+            const result = playGame(homeTeam, awayTeam);
+
+            applyGameResult(result, homeTeam, awayTeam);
+
+            if (
+                game.home === userTeam.name || game.away === userTeam.name) 
+                    {
+                        lastUserResult = result;
+                    }
+        });
+
         advanceDay();
+    }
 
-        const opponent = getNextOpponent();
-        const result = playGame(userTeam, opponent);
-
-        applyGameResult(result, opponent);
+    if (lastUserResult) {
+        updateGameResult(lastUserResult);
+    } else {
+        document.getElementById("gameResult").textContent = "No games this week";
     }
 
     updateDateUI();
+    updateTodayMatchup();
+    renderStandings(getStandings(), userTeam.name);
     saveGame();
 };
 
@@ -308,24 +418,184 @@ function getStandings() {
         .sort((a, b) => b.wins - a.wins);
 }
 
-function getNextOpponent() {
-    const opponent = opponents[gameIndex % opponents.length];
-    gameIndex++;
-    return opponent;
+
+function applyGameResult(result, homeTeam, awayTeam) {
+
+    if (result.winner === homeTeam.name) {
+        homeTeam.wins++;
+        awayTeam.losses++;
+    } else {
+        awayTeam.wins++;
+        homeTeam.losses++;
+    }
 }
 
-function applyGameResult(result, opponent) {
 
-    if (result.winner === userTeam.name) {
-        userTeam.wins++;
-        opponent.losses++;
-    } else {
-        userTeam.losses++;
-        opponent.wins++;
+function renderCalendarView() {
+
+    if (!userTeam) return;
+
+    const label = document.getElementById("calendarMonth");
+
+    if (label) {
+        label.textContent = window.calendarViewDate.toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric"
+        });
     }
 
-    updateRecord(userTeam.wins, userTeam.losses);
+    renderCalendar(
+        window.calendarViewDate,
+        getTeamGameForDate,
+        userTeam.name
+    );
 }
+
+
+window.nextMonth = function () {
+    window.calendarViewDate.setMonth(window.calendarViewDate.getMonth() + 1);
+    renderCalendarView();
+};
+
+window.prevMonth = function () {
+    window.calendarViewDate.setMonth(window.calendarViewDate.getMonth() - 1);
+    renderCalendarView();
+};
+
+
+window.renderCalendarView = renderCalendarView;
+window.getTeamGameForDate = getTeamGameForDate;
+window.getCurrentDate = getCurrentDate;
+
+
+
+function updateTodayMatchup() {
+    const el = document.getElementById("todayMatchup");
+    if (!el || !userTeam) return;
+
+    const game = getTeamGameForDate(userTeam.name, getCurrentDate());
+
+    if (!game) {
+        el.textContent = "No game today";
+        return;
+    }
+
+    const isHome = game.home === userTeam.name;
+    const opponent = isHome ? game.away : game.home;
+
+    el.textContent = isHome ? `vs ${opponent}` : `@ ${opponent}`;
+}
+
+
+function getTeamByName(name) {
+    if (userTeam.name === name) return userTeam;
+
+    return opponents.find(t => t.name === name);
+}
+
+function ensurePlayerStats(players) {
+    if (!Array.isArray(players)) return;
+
+    players.forEach(player => {
+        if (!player.careerStats) {
+            player.careerStats = {
+                games: 0,
+                goals: 0,
+                assists: 0,
+                points: 0
+            };
+        }
+
+        if (!player.currentSeasonStats) {
+            player.currentSeasonStats = {
+                games: 0,
+                goals: 0,
+                assists: 0,
+                points: 0
+            };
+        }
+    });
+}
+
+function ensureTeamStats(team) {
+    if (!team || !team.roster) return;
+    ensurePlayerStats(team.roster);
+}
+
+function ensureLeagueStats() {
+    if (userTeam) ensureTeamStats(userTeam);
+    if (Array.isArray(opponents)) {
+        opponents.forEach(team => ensureTeamStats(team));
+    }
+}
+
+
+function ensureStats(player) {
+    if (!player.careerStats) {
+        player.careerStats = { games: 0, goals: 0, assists: 0, points: 0 };
+    }
+
+    if (!player.currentSeasonStats) {
+        player.currentSeasonStats = { games: 0, goals: 0, assists: 0, points: 0 };
+    }
+}
+
+function addStat(player, type, amount = 1) {
+    ensureStats(player);
+
+    // career
+    player.careerStats[type] += amount;
+
+    // season
+    player.currentSeasonStats[type] += amount;
+
+    if (type === "goals" || type === "assists") {
+        player.careerStats.points += amount;
+        player.currentSeasonStats.points += amount;
+    }
+}
+
+
+function applyPlayerStats(events) {
+
+    if (!events) return;
+
+    events.forEach(event => {
+
+        if (event.scorer) {
+            ensureStats(event.scorer);
+
+            event.scorer.careerStats.goals++;
+            event.scorer.careerStats.points++;
+
+            event.scorer.currentSeasonStats.goals++;
+            event.scorer.currentSeasonStats.points++;
+        }
+
+        if (event.assist) {
+            ensureStats(event.assist);
+
+            event.assist.careerStats.assists++;
+            event.assist.careerStats.points++;
+
+            event.assist.currentSeasonStats.assists++;
+            event.assist.currentSeasonStats.points++;
+        }
+    });
+}
+
+
+function addGamesPlayed(team) {
+    if (!team?.lineup) return;
+
+    team.lineup.forEach(player => {
+        ensureStats(player);
+        player.careerStats.games++;
+        player.currentSeasonStats.games++;
+    });
+}
+
+
 
 
 
