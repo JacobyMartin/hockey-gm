@@ -1,5 +1,5 @@
 // dashboard.js
-import { buildRosterLines, calculateOVR } from "../rosterUtils.js";
+import { buildRosterLines, calculateOVR } from "../utils/rosterUtils.js";
 
 
 // ===============================
@@ -251,11 +251,16 @@ export function renderRoster(roster) {
                 <span class="roster-name">${player.name}</span>
             </div>
 
+
             <div class="roster-right">
-                <span>GP ${season.games}</span>
-                <span>G ${season.goals}</span>
-                <span>A ${season.assists}</span>
-                <span>P ${season.points}</span>
+                <span><span class="stat-label">GP:</span> <span class="stat-value">${season.games}</span></span>
+                <span><span class="stat-label">G:</span>  <span class="stat-value">${season.goals}</span></span>
+                <span><span class="stat-label">A:</span>  <span class="stat-value">${season.assists}</span></span>
+                <span><span class="stat-label">P:</span>  <span class="stat-value">${season.points}</span></span>
+            </div>
+
+
+            <div class = "roster-ovr">
                 <span>${calculateOVR(player)}</span>
             </div>
         `;

@@ -263,7 +263,6 @@ button:active {
 
 .roster-player {
     display: flex;
-    justify-content: space-between;
     align-items: center;
 
     padding: 8px 10px;
@@ -271,6 +270,8 @@ button:active {
 
     border-radius: 8px;
     background: rgba(77, 163, 255, 0.08);
+
+    gap: 12px; 
 }
 
 .roster-player:last-child {
@@ -283,6 +284,8 @@ button:active {
     display: flex;
     align-items: center;
     gap: 8px;
+
+    flex: 1; 
 }
 
 .roster-pos {
@@ -299,11 +302,32 @@ button:active {
 }
 
 
-/* RIGHT SIDE (OVR) */
+/* RIGHT SIDE (stats)  */
 .roster-right {
+    display: flex; 
+    gap: 10px; 
     font-size: 13px;
     font-weight: bold;
+    align-items: center; 
     color: var(--secondary);
+}
+
+.roster-ovr{
+    font-size: 16px; 
+    font-weight: bold;
+    color: var(--primary); 
+    margin-left: 12px;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-weight: normal;
+}
+
+.stat-value{
+    display: inline-block;
+    min-width: 20px;
+    text-align: right;
 }
 
 /*PLAYER MODAL*/

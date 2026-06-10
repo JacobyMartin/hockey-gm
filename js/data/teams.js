@@ -1,11 +1,11 @@
 export const originalTeams = [
 
-    "Montreal",
-    "Toronto",
-    "Boston",
-    "Detroit",
-    "Chicago",
-    "New York",
-    "Brooklyn",
-    "Philadelphia"
+    {name: "Montreal"},
+    {name: "Toronto"},
+    {name: "Boston"},
+    {name: "Detroit"},
+    {name: "Chicago"},
+    {name: "New York"},
+    {name: "Brooklyn"},
+    {name: "Philadelphia"}
 ];

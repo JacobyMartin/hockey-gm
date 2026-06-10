@@ -3,7 +3,8 @@ console.log("main.js loaded");
 
 
 import { playGame} from "./core/engine.js";
-import { buildBestLineup } from "./rosterUtils.js";
+import { buildBestLineup } from "./utils/rosterUtils.js";
+import { createTeam} from "./utils/playerUtils.js";
 import { checkExpansion } from "./core/expansion.js";
 
 import {
@@ -36,7 +37,7 @@ import {
     closePlayerModal
 } from "./ui/dashboard.js";
 
-import { rosters1960 } from "./data/rosters/1960.js"; 
+import { originalTeams } from "./data/teams.js"; 
 import { simulateMatch } from "./core/simulation.js";
 
 
@@ -112,18 +113,18 @@ function init() {
         // restore date UI
         updateDateUI();
 
+        //rebuild lineup after load
+        userTeam.lineup = buildBestLineup(userTeam.roster);
+        opponents.forEach(team => {
+            team.lineup = buildBestLineup(team.roster);
+        });
+        
         // restore main UI
         renderLineup(userTeam.lineup);
         renderRoster(userTeam.roster);
         renderStandings(getStandings(), userTeam.name);
 
         updateRecord(userTeam);
-
-        //ensure player stats on load game 
-        initializeTeamStats(userTeam);
-        opponents.forEach(team => initializeTeamStats(team));
-
-        
 
         // hide start screen
         document.getElementById("startScreen").style.display = "none";
@@ -147,17 +148,26 @@ function init() {
 // TEAM SELECTOR
 // ===============================
 
+
 function populateTeamSelector() {
+
     const select = document.getElementById("teamSelect");
     select.innerHTML = "";
 
-    Object.keys(rosters1960).forEach(name => {
+    
+    originalTeams.forEach(team => {
         const option = document.createElement("option");
+
+        // supports BOTH object + string formats
+        const name = typeof team === "string" ? team : team.name;
+
         option.value = name;
         option.textContent = name;
+
         select.appendChild(option);
     });
 }
+
 // ===============================
 // LINEUP FOR DASHBOARD
 // ===============================
@@ -233,46 +243,29 @@ function buildRosterLines(players) {
 // ===============================
 
 window.startGame = function () {
-    const selected = document.getElementById("teamSelect").value;
-    const selectedRoster = rosters1960[selected];
+    const selectedTeamName = document.getElementById("teamSelect").value;
+    //build randomly generated teams 
+    userTeam = createTeam(selectedTeamName,{
+        easterEggChance: 0.5 //must change later 
+    }); 
 
-    if (!Array.isArray(selectedRoster)) {
-        console.error("Selected team roster is missing or invalid:", selected, selectedRoster);
-        return;
-    }
+    
+    opponents = originalTeams
+        .map(team => team.name)
+        .filter(name => name !== selectedTeamName)
+        .map(name => createTeam(name));
 
-    userTeam = {
-        name: selected,
-        roster: selectedRoster,
-        lineup: buildBestLineup(selectedRoster),
-        wins: 0,
-        losses: 0
-    };
-    initializeTeamStats(userTeam);
 
-    opponents = Object.keys(rosters1960)
-        .filter(name => name !== selected)
-        .map(name => {
-            const roster = rosters1960[name];
-
-            if (!Array.isArray(roster)) {
-                console.error("Opponent roster is missing:", name, roster);
-                return null;
-            }
-
-            return {
-                name,
-                roster,
-                lineup: buildBestLineup(roster),
-                wins: 0,
-                losses: 0
-            };
-        })
-        .filter(Boolean);
-        opponents.forEach(team => initializeTeamStats(team));
-        
-
+    //set game date?
     setDate(new Date(1960, 9, 1));
+
+    
+    //build lineup for dashboard
+    userTeam.lineup = buildBestLineup(userTeam.roster);
+
+    opponents.forEach(team => {
+        team.lineup = buildBestLineup(team.roster);
+    });
 
     // generate schedule
     const teamNames = [userTeam.name, ...opponents.map(t => t.name)];
@@ -362,6 +355,8 @@ window.simDay = function () {
     updateDateUI();
     updateTodayMatchup();
     renderStandings(getStandings(), userTeam.name);
+    renderLineup(userTeam.lineup);
+    renderRoster(userTeam.roster);
     saveGame();
 };
 
@@ -411,6 +406,8 @@ window.simWeek = function () {
     updateDateUI();
     updateTodayMatchup();
     renderStandings(getStandings(), userTeam.name);
+    renderLineup(userTeam.lineup);
+    renderRoster(userTeam.roster);
     saveGame();
 };
 
@@ -609,4 +606,6 @@ window.resetGame = function () {
 // START
 // ===============================
 
-init();
+document.addEventListener("DOMContentLoaded", () => {
+    init();
+});
