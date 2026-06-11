@@ -50,8 +50,8 @@ export function buildRosterLines(players) {
     let defense = players.filter(p => p.pos === "D");
     let goalies = players.filter(p => p.pos === "G");
 
-    forwards = forwards.slice(0, 9);
-    defense = defense.slice(0, 5);
+    forwards = forwards.slice(0, 12);
+    defense = defense.slice(0, 6);
     goalies = goalies.slice(0, 2);
 
     const lines = [];
@@ -74,6 +74,18 @@ export function buildRosterLines(players) {
         });
     }
 
+    
+    if (forwards.length >= 9 && defense.length >= 6) {
+        lines.push({
+            name: "Line 3",
+            players: [
+                ...forwards.slice(6, 9),
+                ...defense.slice(4, 6)
+            ]
+        });
+    }
+
+
     const used = new Set(lines.flatMap(l => l.players.map(p => p.id)));
 
     const scratches = players.filter(p => !used.has(p.id) && p.pos !== "G");
@@ -83,4 +95,29 @@ export function buildRosterLines(players) {
         goalies, 
         scratches
     };
+}
+
+//swapPlayers function for roster screen 
+export function swapPlayers(team, playerA, playerB) {
+    if (!team?.lines) return;
+
+    const findLocation = (player) => {
+        for (const line of team.lines) {
+            if (!line.players) continue;
+
+            const index = line.players.indexOf(player);
+            if (index !== -1) {
+                return { line, index };
+            }
+        }
+        return null;
+    };
+
+    const locA = findLocation(playerA);
+    const locB = findLocation(playerB);
+
+    if (!locA || !locB) return;
+
+    [locA.line.players[locA.index], locB.line.players[locB.index]] =
+        [locB.line.players[locB.index], locA.line.players[locA.index]];
 }

@@ -3,7 +3,7 @@ console.log("main.js loaded");
 
 
 import { playGame} from "./core/engine.js";
-import { buildBestLineup } from "./utils/rosterUtils.js";
+import { buildBestLineup, buildRosterLines } from "./utils/rosterUtils.js";
 import { createTeam} from "./utils/playerUtils.js";
 import { checkExpansion } from "./core/expansion.js";
 
@@ -115,6 +115,7 @@ function init() {
 
         //rebuild lineup after load
         userTeam.lineup = buildBestLineup(userTeam.roster);
+        
         opponents.forEach(team => {
             team.lineup = buildBestLineup(team.roster);
         });
@@ -185,57 +186,6 @@ function calculateOVR(player) {
     );
 }
 
-/// ===============================
-//LINEUP FOR ROSTER SCREEN
-/// ===============================
-
-function buildRosterLines(players) {
-
-    // split by position
-    let forwards = players.filter(p => p.pos === "C" || p.pos === "LW" || p.pos === "RW");
-    let defense = players.filter(p => p.pos === "D");
-    let goalies = players.filter(p => p.pos === "G");
-
-    // apply limits
-    forwards = forwards.slice(0, 9);
-    defense = defense.slice(0, 5);
-    goalies = goalies.slice(0, 2);
-
-    // build lineup groups
-    const lines = [];
-
-    // first line (same as dashboard)
-    lines.push({
-        name: "Line 1",
-        players: [
-            ...forwards.slice(0, 3),
-            ...defense.slice(0, 2),
-            goalies[0]
-        ]
-    });
-
-    // second line (if enough players)
-    if (forwards.length >= 6 || defense.length >= 4) {
-        lines.push({
-            name: "Line 2",
-            players: [
-                ...forwards.slice(3, 6),
-                ...defense.slice(2, 4),
-                goalies[1] || null
-            ].filter(Boolean)
-        });
-    }
-
-    // scratches 
-    const used = new Set(lines.flatMap(l => l.players.map(p => p.id)));
-
-    const scratches = players.filter(p => !used.has(p.id));
-
-    return {
-        lines,
-        scratches
-    };
-}
 
 
 // ===============================
@@ -243,23 +193,30 @@ function buildRosterLines(players) {
 // ===============================
 
 window.startGame = function () {
+
+    const teamNames = originalTeams.map(team =>
+        typeof team === "string" ? team : team.name
+    );
+
     const selectedTeamName = document.getElementById("teamSelect").value;
+
+
     //build randomly generated teams 
     userTeam = createTeam(selectedTeamName,{
         easterEggChance: 0.5 //must change later 
     }); 
 
     
-    opponents = originalTeams
-        .map(team => team.name)
+    
+    opponents = teamNames
         .filter(name => name !== selectedTeamName)
         .map(name => createTeam(name));
 
 
-    //set game date?
+
+    //set game start date. 
     setDate(new Date(1960, 9, 1));
 
-    
     //build lineup for dashboard
     userTeam.lineup = buildBestLineup(userTeam.roster);
 
@@ -268,9 +225,10 @@ window.startGame = function () {
     });
 
     // generate schedule
-    const teamNames = [userTeam.name, ...opponents.map(t => t.name)];
-    generateSchedule(teamNames, getCurrentDate());
+    const scheduleTeamNames = [userTeam.name, ...opponents.map(t => t.name)];
+    generateSchedule(scheduleTeamNames, getCurrentDate());
 
+    //update ui
     document.getElementById("teamName").textContent = userTeam.name;
 
     renderLineup(userTeam.lineup);
@@ -285,8 +243,12 @@ window.startGame = function () {
     window.getStandings = getStandings;
     window.userTeam = userTeam;
     window.opponents = opponents;
-    window.renderCalendar(); 
-    
+
+    if (typeof renderCalendar === "function") {
+        renderCalendar();
+    }
+
+    //dashboard view default screen 
     showScreen("dashboard");
     
     window.calendarViewDate = new Date(getCurrentDate());
@@ -539,12 +501,11 @@ function initializeTeamStats(team) {
 
 
 
-function applyPlayerStats(events) {
 
+function applyPlayerStats(events) {
     if (!events) return;
 
     events.forEach(event => {
-
         if (event.scorer) {
             ensureStats(event.scorer);
 
@@ -564,8 +525,19 @@ function applyPlayerStats(events) {
             event.assist.currentSeasonStats.assists++;
             event.assist.currentSeasonStats.points++;
         }
+
+        if (event.secondAssist) {
+            ensureStats(event.secondAssist);
+
+            event.secondAssist.careerStats.assists++;
+            event.secondAssist.careerStats.points++;
+
+            event.secondAssist.currentSeasonStats.assists++;
+            event.secondAssist.currentSeasonStats.points++;
+        }
     });
 }
+
 
 
 function addGamesPlayed(team) {
@@ -573,7 +545,7 @@ function addGamesPlayed(team) {
 
     const { lines } = buildRosterLines(team.roster);
 
-    const activePlayers =lines.flatMap(line => line.players);
+    const activePlayers = lines.flatMap(line => line.players);
 
     activePlayers.forEach(player => {
         ensureStats(player);

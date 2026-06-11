@@ -98,7 +98,7 @@ export function createEasterEggPlayer() {
 
 /**
  * Generates a balanced roster:
- * 9 forwards, 5 defense, 2 goalies
+ * 12 forwards, 6 defense, 2 goalies
  */
 export function generateRoster(options = {}) {
     const {
@@ -108,25 +108,43 @@ export function generateRoster(options = {}) {
 
     const roster = [];
 
-    // 9 forwards
     const forwardPositions = ["C", "LW", "RW"];
-    for (let i = 0; i < 9; i++) {
-        roster.push(createPlayer(randomPick(forwardPositions)));
+
+    // 2 franchise players (FORWARDS)
+    for (let i = 0; i < 2; i++) {
+        roster.push(createTierPlayer("star", randomPick(forwardPositions)));
     }
 
-    // 5 defense
-    for (let i = 0; i < 5; i++) {
-        roster.push(createPlayer("D"));
+    // 3 strong players (FORWARDS / D MIX)
+    for (let i = 0; i < 3; i++) {
+        const pos = Math.random() < 0.7
+            ? randomPick(forwardPositions)
+            : "D";
+
+        roster.push(createTierPlayer("top", pos));
+    }
+
+    // fill remaining forwards (to 12 total)
+    while (roster.filter(p => forwardPositions.includes(p.pos)).length < 12) {
+        roster.push(createTierPlayer("depth", randomPick(forwardPositions)));
+    }
+
+    // fill defense to 6 total
+    while (roster.filter(p => p.pos === "D").length < 6) {
+        roster.push(createTierPlayer("depth", "D"));
     }
 
     // 2 goalies
     for (let i = 0; i < 2; i++) {
-        roster.push(createPlayer("G"));
+        roster.push(createTierPlayer("top", "G"));
+        if(i == 1){
+            roster.push(createTierPlayer("depth", "G")); 
+            i++; 
+        }
     }
 
-    // optional easter egg
+    // optional easter egg (replaces a forward)
     if (includeEasterEgg || Math.random() < easterEggChance) {
-        // replace one forward so roster size stays consistent
         const firstForwardIndex = roster.findIndex(
             player => ["C", "LW", "RW"].includes(player.pos)
         );
@@ -137,6 +155,35 @@ export function generateRoster(options = {}) {
     }
 
     return roster;
+}
+
+
+function createTierPlayer(tier, pos) {
+    const player = createPlayer(pos);
+
+    let base;
+
+    if (tier === "star") base = randomInt(90, 96);
+    else if (tier === "top") base = randomInt(84, 88);
+    else base = randomInt(65, 83);
+
+    // generate consistent attributes around base
+    player.shooting = vary(base);
+    player.passing = vary(base);
+    player.offenseIQ = vary(base);
+    player.defense = vary(base);
+    player.defenseIQ = vary(base);
+
+    // goalie override
+    if (pos === "G") {
+        player.reflexes = vary(base);
+        player.positioning = vary(base);
+        player.puckControl = vary(base);
+        player.reboundControl = vary(base);
+        player.goalieIQ = vary(base);
+    }
+
+    return player;
 }
 
 
@@ -237,4 +284,14 @@ function generateName() {
     ];
 
     return `${randomPick(first)} ${randomPick(last)}`;
+}
+
+
+function vary(base) {
+    const variation = randomInt(-5, 5);
+    return clamp(base + variation, 50, 99);
+}
+
+function clamp(val, min, max) {
+    return Math.max(min, Math.min(max, val));
 }

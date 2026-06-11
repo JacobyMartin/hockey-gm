@@ -93,7 +93,7 @@ body {
 
 
 
-/* ===== LINEUP CARDS ===== */
+/* ===== LINEUP CARDS ===== ==================================================================================*/
 .lineup-cards {
     display: flex;
     flex-direction: column;
@@ -192,7 +192,7 @@ body {
 
 
 
-/* ===== BUTTONS ===== */
+/* ===== BUTTONS ===== ================================================================================== */
 button {
     width: 100%;
     padding: 10px;
@@ -238,7 +238,7 @@ button:active {
 
 
 
-/* ===== ROSTER SECTIONS ===== */
+/* ===== ROSTER SECTIONS ===== ==================================================================================*/
 
 .roster-section {
     background: var(--panel);
@@ -331,7 +331,7 @@ button:active {
 }
 
 /*PLAYER MODAL*/
-/* ===== PLAYER MODAL ===== */
+/* ===== PLAYER MODAL ===== ==========================================================================*/
 .player-modal {
     position: fixed;
     inset: 0;
@@ -404,7 +404,7 @@ button:active {
     font-weight: 600;
 }
 
-/* ===== DASHBOARD PLAYER CARD EXTRA STATS ===== */
+/* ===== DASHBOARD PLAYER CARD EXTRA STATS ===================================================== */
 .player-season-line {
     margin-top: 6px;
     display: flex;
@@ -424,7 +424,7 @@ button:active {
 
 
 
-/* ===== STANDINGS SECTION ===== */
+/* ===== STANDINGS SECTION ========================================================= */
 .standings-table {
     width: 100%;
     border-collapse: collapse;
@@ -451,7 +451,7 @@ button:active {
     color: var(--secondary);
 }
 
-
+/****************************************************************************************************/
 /* ===== CALENDAR GRID ===== */
 
 .calendar-grid {

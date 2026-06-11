@@ -1,5 +1,8 @@
 // dashboard.js
-import { buildRosterLines, calculateOVR } from "../utils/rosterUtils.js";
+import { buildRosterLines, calculateOVR, swapPlayers } from "../utils/rosterUtils.js";
+
+
+let selectedPlayer = null; 
 
 
 // ===============================
@@ -265,7 +268,31 @@ export function renderRoster(roster) {
             </div>
         `;
 
-        row.addEventListener("click", () => showPlayerDetails(player));
+        row.addEventListener("click", () => {
+            // First click → select player
+            if (!selectedPlayer) {
+                selectedPlayer = player;
+                row.classList.add("selected-player");
+                return;
+            }
+
+            // Second click → swap
+            swapPlayers(userTeam, selectedPlayer, player);
+
+            selectedPlayer = null;
+
+            renderRoster(userTeam.roster);
+            renderLineup(userTeam.lineup);
+        });
+
+        
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".roster-player")) {
+                selectedPlayer = null;
+                renderRoster(userTeam.roster);
+            }
+        });
+
         return row;
     };
 

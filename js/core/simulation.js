@@ -1,8 +1,10 @@
 // simulation.js
-// simulate matches based on team ratings
 
 import { getTeamOverall } from "./stats.js";
 import { buildRosterLines } from "../utils/rosterUtils.js";
+
+const POSSESSIONS = 42;   
+const BASE_GOAL_CHANCE = 0.08;   // tune this up/down for league scoring
 
 export function simulateMatch(homeTeam, awayTeam) {
     const homeOverall = getTeamOverall(homeTeam);
@@ -13,19 +15,27 @@ export function simulateMatch(homeTeam, awayTeam) {
 
     const events = [];
 
-    // simulate possessions / chances
-    for (let i = 0; i < 30; i++) {
-        const homeChance = Math.random() * homeOverall;
-        const awayChance = Math.random() * awayOverall;
+    const homeGoalChance = BASE_GOAL_CHANCE * (homeOverall / 80);
+    const awayGoalChance = BASE_GOAL_CHANCE * (awayOverall / 80);
 
-        // home goal
-        if (homeChance > 75) {
+    for (let i = 0; i < POSSESSIONS; i++) {
+        if (Math.random() < homeGoalChance) {
             homeGoals++;
             events.push(createGoalEvent(homeTeam, "home"));
         }
 
-        // away goal
-        if (awayChance > 75) {
+        if (Math.random() < awayGoalChance) {
+            awayGoals++;
+            events.push(createGoalEvent(awayTeam, "away"));
+        }
+    }
+
+    // optional overtime/shootout prevention if you never want ties
+    if (homeGoals === awayGoals) {
+        if (Math.random() < 0.5) {
+            homeGoals++;
+            events.push(createGoalEvent(homeTeam, "home"));
+        } else {
             awayGoals++;
             events.push(createGoalEvent(awayTeam, "away"));
         }
@@ -34,10 +44,7 @@ export function simulateMatch(homeTeam, awayTeam) {
     return {
         homeGoals,
         awayGoals,
-        winner:
-            homeGoals > awayGoals
-                ? homeTeam.name
-                : awayTeam.name,
+        winner: homeGoals > awayGoals ? homeTeam.name : awayTeam.name,
         events
     };
 }
@@ -48,32 +55,47 @@ export function simulateMatch(homeTeam, awayTeam) {
 // ===============================
 
 function createGoalEvent(team, side) {
-    const skaters = getActiveSkaters(team);
+    const activeSkaters = getActiveSkaters(team);
 
-    if (skaters.length === 0) {
+    if (activeSkaters.length === 0) {
         return {
             team: team.name,
             side,
             scorer: null,
-            assist: null
+            assist: null,
+            secondAssist: null
         };
     }
 
-    const scorer = weightedPick(skaters, player => getScoringWeight(player));
+    // scorer heavily weighted by line + shooting + offenseIQ
+    const scorerEntry = weightedPick(activeSkaters, getScoringWeight);
+    const scorer = scorerEntry.player;
 
-    // assister can be anyone active except scorer
-    const assistPool = skaters.filter(player => player !== scorer);
+    // assist pool excludes scorer
+    const assistPool = activeSkaters.filter(entry => entry.player !== scorer);
 
-    const assist =
-        assistPool.length > 0
-            ? weightedPick(assistPool, player => getAssistWeight(player))
-            : null;
+    let assist = null;
+    let secondAssist = null;
+
+    if (assistPool.length > 0) {
+        const assistEntry = weightedPick(assistPool, getAssistWeight);
+        assist = assistEntry.player;
+
+        // optional second assist ~45% of the time
+        const secondAssistPool = assistPool.filter(entry => entry.player !== assist);
+
+        if (secondAssistPool.length > 0 && Math.random() < 0.45) {
+            const secondAssistEntry = weightedPick(secondAssistPool, getAssistWeight);
+            secondAssist = secondAssistEntry.player;
+        }
+    }
 
     return {
         team: team.name,
         side,
         scorer,
-        assist
+        assist,
+        secondAssist
     };
 }
 
@@ -82,46 +104,63 @@ function getActiveSkaters(team) {
 
     const { lines } = buildRosterLines(team.roster);
 
-    //skaters only
-    //goalies and scratches are excluded
-    return lines
-        .flatMap(line => line.players)
-        .filter(player => player && player.pos !== "G");
+    // add line metadata so we can weight by line
+    return lines.flatMap((line, index) =>
+        line.players
+            .filter(player => player && player.pos !== "G")
+            .map(player => ({
+                player,
+                lineIndex: index + 1,
+                lineName: line.name
+            }))
+    );
 }
 
-function getScoringWeight(player) {
+function getLineMultiplier(lineIndex) {
+    if (lineIndex === 1) return 1.65; // first line dominates
+    if (lineIndex === 2) return 1.05; // second line still strong
+    if (lineIndex === 3) return 0.60; // third line depth scoring
+    return 1.0;
+}
+
+function getScoringWeight(entry) {
+    const player = entry.player;
+
     const shooting = player.shooting || 0;
     const offenseIQ = player.offenseIQ || 0;
 
-    // forwards should score more than defense
-    const positionBonus =
-        player.pos === "D" ? 0.55 : 1.05;
+    const lineBonus = getLineMultiplier(entry.lineIndex);
 
-    // weighted toward shooters/offensive players
+    // defense scores less than forwards
+    const positionBonus = player.pos === "D" ? 0.65 : 1.20;
+
     return Math.max(
         1,
-        (shooting * 0.65 + offenseIQ * 0.35) * positionBonus
+        (shooting * 0.60 + offenseIQ * 0.40) * lineBonus * positionBonus
     );
 }
 
-function getAssistWeight(player) {
+function getAssistWeight(entry) {
+    const player = entry.player;
+
     const passing = player.passing || 0;
     const offenseIQ = player.offenseIQ || 0;
 
-    // defense can still assist often, just score less
-    const positionBonus =
-        player.pos === "D" ? 0.75 : 1.05;
+    const lineBonus = getLineMultiplier(entry.lineIndex);
+
+    // defense can still collect assists fairly often
+    const positionBonus = player.pos === "D" ? 0.95 : 1.10;
 
     return Math.max(
         1,
-        (passing * 0.65 + offenseIQ * 0.35) * positionBonus
+        (passing * 0.60 + offenseIQ * 0.40) * lineBonus * positionBonus
     );
 }
 
-function weightedPick(players, weightFn) {
-    const weighted = players.map(player => ({
-        player,
-        weight: Math.max(1, weightFn(player))
+function weightedPick(entries, weightFn) {
+    const weighted = entries.map(entry => ({
+        entry,
+        weight: Math.max(1, weightFn(entry))
     }));
 
     const totalWeight = weighted.reduce((sum, item) => sum + item.weight, 0);
@@ -131,9 +170,9 @@ function weightedPick(players, weightFn) {
     for (const item of weighted) {
         roll -= item.weight;
         if (roll <= 0) {
-            return item.player;
+            return item.entry;
         }
     }
 
-    return weighted[weighted.length - 1].player;
+    return weighted[weighted.length - 1].entry;
 }
